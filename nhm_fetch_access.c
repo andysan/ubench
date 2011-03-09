@@ -41,20 +41,13 @@
 #include "memory.h"
 #include "timing.h"
 #include "cyclecounter.h"
-
-#define CACHE_PRIV ((32 + 256) * 1024)
-#define LINE_SIZE (64)
+#include "bench_argp.h"
 
 static size_t bench_size = 16*1024*1024;
 static int bench_size_mask = 16*1024*1024 - 1;
-static size_t bench_priv_size = CACHE_PRIV;
-static size_t bench_line_size = LINE_SIZE;
 
-static long bench_distance = CACHE_PRIV * 1.5;
+static long bench_distance = LONG_MIN;
 static long bench_streams = 3;
-static long bench_iterations = 1000;
-
-static int param_cpu = -1;
 
 static char *data;
 
@@ -71,8 +64,8 @@ access(const char *d)
 static inline void
 bench_iteration()
 {
-
-    for (long i = 0; i < bench_size; i += bench_line_size) {
+    const long line_size = bench_settings.line_size;
+    for (long i = 0; i < bench_size; i += line_size) {
 	for (long j = 0; j < bench_streams; j++)
 	    access(data +
 		   ((i + bench_distance * j) & bench_size_mask));
@@ -90,7 +83,7 @@ run_bench()
 
     timing_start(&t);
     cycles_start = cycles_get();
-    for (long i = 0; i < bench_iterations; i++)
+    for (long i = 0; i < bench_settings.iterations; i++)
 	bench_iteration();
     cycles_stop = cycles_get();
     timing_stop(&t);
@@ -103,11 +96,15 @@ run_bench()
 static void
 init()
 {
-    if (param_cpu != -1) {
+    if (bench_distance == LONG_MIN)
+        bench_distance = bench_settings.cache_private * 1.5;
+
+
+    if (bench_settings.cpu != -1) {
 	cpu_set_t cpu_set;
 
 	CPU_ZERO(&cpu_set);
-	CPU_SET(param_cpu, &cpu_set);
+	CPU_SET(bench_settings.cpu, &cpu_set);
 	EXPECT_ERRNO(sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set) != -1);
     }
 
@@ -117,20 +114,6 @@ init()
 	data[i] = i & 0xFF;
 }
 
-static long
-arg_long(struct argp_state *state, const char *arg, const char *errmsg)
-{
-    long ret;
-    char *endptr;
-
-    errno = 0;
-    ret = strtol(arg, &endptr, 0);
-    if (arg == endptr || *endptr || errno != 0)
-	argp_error(state, "%s", errmsg);
-
-    return ret;
-}
-
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
@@ -138,33 +121,21 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     switch (key)
     {
-    case 'c':
-	l_arg = arg_long(state, arg, "Invalid CPU specified");
-        if (l_arg > INT_MAX || l_arg < INT_MIN)
-            argp_error(state, "CPU number out of range");
-
-	param_cpu = (int)l_arg;
-	break;
-
-    case 'i':
-        bench_iterations = arg_long(state, arg, "Number of iterations is invalid");
-        break;
-
     case 's':
-        bench_streams = arg_long(state, arg, "Number of streams is invalid");
+        bench_streams = bench_argp_parse_long(state, "streams", arg);
         break;
 
     case 'd':
-        bench_distance = arg_long(state, arg, "Distance is invalid");
+        bench_distance = bench_argp_parse_long(state, "distance", arg);
         break;
 
     case ARGP_KEY_ARG:
 	argp_usage(state);
         break;
-     
+
     case ARGP_KEY_END:
         break;
-     
+
     default:
         return ARGP_ERR_UNKNOWN;
     }
@@ -178,10 +149,13 @@ const char *argp_program_bug_address =
     "andreas.sandberg@it.uu.se";
 
 static struct argp_option arg_options[] = {
-    { "cpu", 'c', "CPU", 0, "Pin process to CPU", 0 },
-    { "iterations", 'i', "NUM", 0, "Run NUM iterations", 0 },
     { "streams", 's', "NUM", 0, "Use NUM streams", 0 },
     { "distance", 'd', "NUM", 0, "Stream distance in bytes", 0 },
+    { 0 }
+};
+
+static struct argp_child arg_children[] = {
+    { &bench_argp, 0, "Common options:", 0 },
     { 0 }
 };
 
@@ -194,6 +168,7 @@ static struct argp argp = {
     "This microbenchmark accesses memory in multiple streams sequential "
     "streams. Each stream is has a distance of 1.5x the private cache size "
     "of a core by default.",
+    .children = arg_children,
 };
 
 int
