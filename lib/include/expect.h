@@ -50,3 +50,12 @@ extern void expect_failed_errno(const char *file,
 	expect_failed(__FILE__, __LINE__, #e)
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * c-file-style: "k&r"
+ * End:
+ */

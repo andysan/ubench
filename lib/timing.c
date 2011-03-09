@@ -81,3 +81,12 @@ timing_stop(timing_t *t)
     else
 	t->acc -= (t->start.tv_nsec - ts.tv_nsec) * 1E-9;
 }
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * c-file-style: "k&r"
+ * End:
+ */

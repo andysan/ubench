@@ -56,3 +56,12 @@ mem_huge_free(void *addr, size_t size)
 {
     munmap(addr, size);
 }
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * c-file-style: "k&r"
+ * End:
+ */

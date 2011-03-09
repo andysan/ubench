@@ -45,3 +45,12 @@ extern void timing_start(timing_t *t);
 extern void timing_stop(timing_t *t);
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * c-file-style: "k&r"
+ * End:
+ */

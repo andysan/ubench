@@ -70,3 +70,12 @@ expect_failed_errno(const char *file,
 
     abort();
 }
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * c-file-style: "k&r"
+ * End:
+ */

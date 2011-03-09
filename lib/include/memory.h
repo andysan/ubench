@@ -51,3 +51,12 @@ void *mem_huge_alloc(size_t size);
 void mem_huge_free(void *addr, size_t size);
 
 #endif
+
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * c-file-style: "k&r"
+ * End:
+ */
