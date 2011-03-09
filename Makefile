@@ -33,7 +33,9 @@ include $(addsuffix .d, $(bench))
 	sed 's,\($(notdir $*)\)\.o[ :]*,$(dir $*)\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-$(bench): $(bench).o $(lib-o) $(arch-o)
+
+%: %.o $(lib-o) $(arch-o)
+	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 clean: libclean archclean
 	$(RM) $(bench) *.o
