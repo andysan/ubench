@@ -16,7 +16,7 @@ CFLAGS = -std=gnu99 -O2
 CPPFLAGS = -Iarch/include -Ilib/include
 LDFLAGS = -lrt
 
-bench := nhm_fetch_access
+bench := nhm_fetch_access pingpong
 lib-o :=
 arch-o :=
 
