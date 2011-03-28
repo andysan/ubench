@@ -43,7 +43,7 @@
 #include "cyclecounter.h"
 #include "bench_argp.h"
 
-static size_t bench_size;
+static size_t bench_size = 0;
 
 static char *data;
 
@@ -89,7 +89,8 @@ run_bench()
 static void
 init()
 {
-    bench_size = 2 * bench_settings.cache_shared;
+    if (!bench_size)
+        bench_size = 2 * bench_settings.cache_shared;
 
     if (bench_settings.cpu != -1) {
 	cpu_set_t cpu_set;
@@ -112,6 +113,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     switch (key)
     {
+    case 's':
+        bench_size = bench_argp_parse_long(state, "size", arg);
+        break;
+
     case ARGP_KEY_ARG:
 	argp_usage(state);
         break;
@@ -132,6 +137,7 @@ const char *argp_program_bug_address =
     "andreas.sandberg@it.uu.se";
 
 static struct argp_option arg_options[] = {
+    { "size", 's', "SIZE", 0, "Override dataset size", 0 },
     { 0 }
 };
 
@@ -148,7 +154,7 @@ static struct argp argp = {
     "\v"
     "This microbenchmark generates a simple streaming access pattern with "
     "one access stream. The stream uses touches one byte on every cache line "
-    "in a data set of 2x the shared cache.",
+    "in a data set of 2x the shared cache by default.",
     .children = arg_children,
 };
 
