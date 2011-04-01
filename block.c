@@ -42,27 +42,20 @@
 #include "timing.h"
 #include "cyclecounter.h"
 #include "bench_argp.h"
+#include "access.h"
 
 static size_t bench_size = 0;
 
 static char *data;
 
-static inline char __attribute__((always_inline))
-access(const char *d)
-{
-    char c;
-    asm volatile ("mov %1, %0"
-	 : "=r"(c)
-	 : "m"(*d));
-    return c;
-}
+#define ACCESS access_rd8
 
 static inline void
 bench_iteration()
 {
     const long line_size = bench_settings.line_size;
     for (long i = 0; i < bench_size; i += line_size)
-        access(data + i);
+        ACCESS(data + i);
 }
 
 static void __attribute__((noinline))
