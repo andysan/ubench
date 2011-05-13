@@ -67,8 +67,8 @@ static inline uint64_t
 x86_tsc_read()
 {
     uint64_t tsc;
-    asm ("rdtsc\n"
-	 "shl $32, %%rdx\n"
+    asm ("rdtsc\n\t"
+	 "shl $32, %%rdx\n\t"
 	 "or %%rdx, %%rax"
 	 : "=a"(tsc)
 	 :
@@ -80,9 +80,9 @@ static inline uint64_t
 x86_tsc_read_mfenced()
 {
     uint64_t tsc;
-    asm ("mfence\n"
-	 "rdtsc\n"
-	 "shl $32, %%rdx\n"
+    asm ("mfence\n\t"
+	 "rdtsc\n\t"
+	 "shl $32, %%rdx\n\t"
 	 "or %%rdx, %%rax"
 	 : "=a"(tsc)
 	 :
@@ -96,7 +96,7 @@ static inline uint64_t
 x86_tsc_read()
 {
     uint32_t eax, edx;
-    asm ("rdtsc\n"
+    asm ("rdtsc"
 	 : "=a"(eax), "=d"(edx));
     return ((uint64_t)edx << 32) | eax;
 }
@@ -105,8 +105,8 @@ static inline uint64_t
 x86_tsc_read_mfenced()
 {
     uint32_t eax, edx;
-    asm ("mfence\n"
-	 "rdtsc\n"
+    asm ("mfence\n\t"
+	 "rdtsc"
 	 : "=a"(eax), "=d"(edx));
     return ((uint64_t)edx << 32) | eax;
 }
