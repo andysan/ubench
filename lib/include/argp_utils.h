@@ -28,34 +28,41 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BENCH_ARGP_H
-#define BENCH_ARGP_H
+#ifndef ARGP_UTILS_H
+#define ARGP_UTILS_H
 
+#include <stdint.h>
 #include <argp.h>
 
-typedef struct {
-    /** Pin to CPU, -1 to disable pinning */
-    int cpu;
-    /** Number of iterations to run */
-    int iterations;
-    /** Size of private cache */
-    size_t cache_private;
-    /** Size of shared cache */
-    size_t cache_shared;
-    /** Line size */
-    size_t line_size;
-} bench_settings_t;
+long long argp_parse_long_long(struct argp_state *state,
+			       const char *name, const char *arg);
 
-extern bench_settings_t bench_settings;
-extern struct argp bench_argp;
+long long argp_parse_long(struct argp_state *state,
+			  const char *name, const char *arg);
+long long argp_parse_int(struct argp_state *state,
+			 const char *name, const char *arg);
+
+int64_t argp_parse_int64(struct argp_state *state,
+			 const char *name, const char *arg);
+int32_t argp_parse_int32(struct argp_state *state,
+			 const char *name, const char *arg);
+int16_t argp_parse_int16(struct argp_state *state,
+			 const char *name, const char *arg);
+int8_t argp_parse_int8(struct argp_state *state,
+		       const char *name, const char *arg);
+
+uint64_t argp_parse_uint64(struct argp_state *state,
+			   const char *name, const char *arg);
+uint32_t argp_parse_uint32(struct argp_state *state,
+			   const char *name, const char *arg);
+uint16_t argp_parse_uint16(struct argp_state *state,
+			   const char *name, const char *arg);
+uint8_t argp_parse_uint8(struct argp_state *state,
+			 const char *name, const char *arg);
+
+size_t argp_parse_size(struct argp_state *state,
+		       const char *name, const char *arg);
+ssize_t argp_parse_ssize(struct argp_state *state,
+			 const char *name, const char *arg);
 
 #endif
-
-/*
- * Local Variables:
- * mode: c
- * c-basic-offset: 4
- * indent-tabs-mode: nil
- * c-file-style: "k&r"
- * End:
- */

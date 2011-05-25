@@ -1,5 +1,6 @@
 
-lib-o += lib/expect.o lib/timing.o lib/memory.o lib/bench_argp.o
+lib-o += lib/expect.o lib/timing.o lib/memory.o \
+	lib/argp_utils.o lib/bench_argp.o
 
 libclean:
 	$(RM) lib/*.o lib/*.d

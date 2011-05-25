@@ -29,6 +29,7 @@
  */
 
 #include "bench_argp.h"
+#include "argp_utils.h"
 
 #include <stdlib.h>
 
@@ -56,27 +57,27 @@ parse_opt(int key, char *arg, struct argp_state *state)
 {
     switch (key) {
     case 'c':
-        bench_settings.cpu = bench_argp_parse_int(state, "cpu", arg);
+        bench_settings.cpu = argp_parse_int(state, "cpu", arg);
 	break;
 
     case 'i':
         bench_settings.iterations =
-            bench_argp_parse_long(state, "iterations", arg);
+            argp_parse_int(state, "iterations", arg);
 	break;
 
     case KEY_CACHE_PRIVATE:
         bench_settings.cache_private =
-            bench_argp_parse_long(state, "private cache size", arg);
+            argp_parse_size(state, "private cache size", arg);
 	break;
 
     case KEY_CACHE_SHARED:
         bench_settings.cache_private =
-            bench_argp_parse_long(state, "shared cache size", arg);
+            argp_parse_size(state, "shared cache size", arg);
 	break;
 
     case KEY_LINE_SIZE:
         bench_settings.line_size =
-            bench_argp_parse_long(state, "line size", arg);
+            argp_parse_size(state, "line size", arg);
 	break;
 
     case ARGP_KEY_END:
@@ -87,36 +88,6 @@ parse_opt(int key, char *arg, struct argp_state *state)
     }
     return 0;
 }
-
-long
-bench_argp_parse_long(struct argp_state *state, const char *name, const char *arg)
-{
-    char *endptr;
-    long value;
-
-    errno = 0;
-    value = strtol(arg, &endptr, 0);
-    if (errno)
-        argp_failure(state, EXIT_FAILURE, errno,
-                     "Invalid %s", name);
-    else if (*arg == '\0' || *endptr != '\0')
-        argp_error(state, "Invalid %s: '%s' is not a number.\n", name, arg);
-
-    return value;
-}
-
-int
-bench_argp_parse_int(struct argp_state *state, const char *name, const char *arg)
-{
-    long value;
-
-    value = bench_argp_parse_long(state, name, arg);
-    if (value > INT_MAX || value < INT_MIN)
-        argp_error(state, "Invalid %s: '%s' is out of range", name, arg);
-
-    return (int)value;
-}
-
 
 struct argp bench_argp = {
     .options = options,

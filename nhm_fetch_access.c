@@ -42,6 +42,7 @@
 #include "timing.h"
 #include "cyclecounter.h"
 #include "bench_argp.h"
+#include "argp_utils.h"
 #include "access.h"
 
 static size_t bench_size = 16*1024*1024;
@@ -115,11 +116,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
     switch (key)
     {
     case 's':
-        bench_streams = bench_argp_parse_long(state, "streams", arg);
+        bench_streams = argp_parse_long(state, "streams", arg);
         break;
 
     case 'd':
-        bench_distance = bench_argp_parse_long(state, "distance", arg);
+        bench_distance = argp_parse_long(state, "distance", arg);
         break;
 
     case ARGP_KEY_ARG:
