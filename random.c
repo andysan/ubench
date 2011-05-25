@@ -118,6 +118,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
         bench_size = argp_parse_size(state, "size", arg);
         break;
 
+    case 'r':
+        lcg_state = argp_parse_uint64(state, "num", arg);
+        break;
+
     case ARGP_KEY_ARG:
 	argp_usage(state);
         break;
@@ -139,6 +143,7 @@ const char *argp_program_bug_address =
 
 static struct argp_option arg_options[] = {
     { "size", 's', "SIZE", 0, "Data set size", 0 },
+    { "random-seed", 'r', "NUM", 0, "Random seed", 0 },
     { 0 }
 };
 
