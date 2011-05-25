@@ -28,7 +28,11 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef MEM_NO_HUGE
 #include <sys/mman.h>
+#else
+#include <stdlib.h>
+#endif
 
 #include "memory.h"
 
@@ -41,6 +45,8 @@
  * defined by the system headers. */
 #define MAP_HUGETLB     0x40000
 #endif
+
+#ifndef MEM_NO_HUGE
 
 void *
 mem_huge_alloc(size_t size)
@@ -59,6 +65,22 @@ mem_huge_free(void *addr, size_t size)
 {
     munmap(addr, ROUND_U(size));
 }
+
+#else
+
+void *
+mem_huge_alloc(size_t size)
+{
+    return malloc(size);
+}
+
+void
+mem_huge_free(void *addr, size_t size)
+{
+    free(addr);
+}
+
+#endif
 
 /*
  * Local Variables:
