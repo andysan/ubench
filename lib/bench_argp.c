@@ -42,7 +42,7 @@ enum {
 static struct argp_option options[] = {
     { NULL, 0, NULL, 0, "Ubench common:", 1 },
     { "cpu", 'c', "CPU", 0, "Pin to CPU", 1 },
-    { "iterations", 'i', "NUM", 0, "Run NUM iterations", 1 },
+    { "iterations", 'i', "NUM", 0, "Run NUM iterations, 0 for unbounded", 1 },
 
     { NULL, 0, NULL, 0, "Cache settings:", 2 },
     { "cache-pri", KEY_CACHE_PRIVATE, "SIZE", 0, "Shared cache size", 2 },

@@ -28,29 +28,28 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BENCH_ARGP_H
-#define BENCH_ARGP_H
+#define _GNU_SOURCE
 
-#include <stddef.h> /* For size_t */
-#include <argp.h>
+#include "bench_common.h"
 
-typedef struct {
-    /** Pin to CPU, -1 to disable pinning */
-    int cpu;
-    /** Number of iterations to run */
-    unsigned int iterations;
-    /** Size of private cache */
-    size_t cache_private;
-    /** Size of shared cache */
-    size_t cache_shared;
-    /** Line size */
-    size_t line_size;
-} bench_settings_t;
+#include <sched.h>
 
-extern bench_settings_t bench_settings;
-extern struct argp bench_argp;
+#include "expect.h"
 
-#endif
+int
+bench_pin_cpu()
+{
+    if (bench_settings.cpu != -1) {
+	cpu_set_t cpu_set;
+
+	CPU_ZERO(&cpu_set);
+	CPU_SET(bench_settings.cpu, &cpu_set);
+	return sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set);
+    }
+
+    return 0;
+}
+
 
 /*
  * Local Variables:

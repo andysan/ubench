@@ -28,8 +28,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define _GNU_SOURCE
-#include <sched.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -39,11 +37,10 @@
 
 #include "expect.h"
 #include "memory.h"
-#include "timing.h"
-#include "cyclecounter.h"
 #include "bench_argp.h"
 #include "argp_utils.h"
 #include "access.h"
+#include "bench_common.h"
 
 static size_t bench_size = 0;
 
@@ -59,26 +56,7 @@ bench_iteration()
         ACCESS(data + i);
 }
 
-static void __attribute__((noinline))
-run_bench()
-{
-    timing_t t;
-    uint64_t cycles_start;
-    uint64_t cycles_stop;
-
-    timing_init(&t);
-
-    timing_start(&t);
-    cycles_start = cycles_get();
-    for (unsigned int i = 0; i < bench_settings.iterations; i++)
-	bench_iteration();
-    cycles_stop = cycles_get();
-    timing_stop(&t);
-
-    printf("Wall clock time: %.4f\n"
-	   "Cycles: %" PRIu64 "\n",
-	   t.acc, cycles_stop - cycles_start);
-}
+RUN_BENCH(run_bench, bench_iteration);
 
 static void
 init()
@@ -86,13 +64,7 @@ init()
     if (!bench_size)
         bench_size = 2 * bench_settings.cache_shared;
 
-    if (bench_settings.cpu != -1) {
-	cpu_set_t cpu_set;
-
-	CPU_ZERO(&cpu_set);
-	CPU_SET(bench_settings.cpu, &cpu_set);
-	EXPECT_ERRNO(sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set) != -1);
-    }
+    EXPECT_ERRNO(bench_pin_cpu() != -1);
 
     data = mem_huge_alloc(bench_size);
     EXPECT_ERRNO(data != NULL);

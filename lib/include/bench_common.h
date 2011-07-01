@@ -28,27 +28,52 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BENCH_ARGP_H
-#define BENCH_ARGP_H
+#ifndef BENCH_COMMON_H
+#define BENCH_COMMON_H
 
-#include <stddef.h> /* For size_t */
-#include <argp.h>
+#include <inttypes.h>
+#include <stdio.h>
 
-typedef struct {
-    /** Pin to CPU, -1 to disable pinning */
-    int cpu;
-    /** Number of iterations to run */
-    unsigned int iterations;
-    /** Size of private cache */
-    size_t cache_private;
-    /** Size of shared cache */
-    size_t cache_shared;
-    /** Line size */
-    size_t line_size;
-} bench_settings_t;
+#include "timing.h"
+#include "cyclecounter.h"
+#include "bench_argp.h"
 
-extern bench_settings_t bench_settings;
-extern struct argp bench_argp;
+#define RUN_BENCH(name, func)						\
+    static void __attribute__((noinline))				\
+    name()								\
+    {									\
+        timing_t t;							\
+	uint64_t cycles_start;						\
+	uint64_t cycles_stop;						\
+									\
+	timing_init(&t);						\
+	timing_start(&t);						\
+	cycles_start = cycles_get();					\
+	if (bench_settings.iterations > 0) {				\
+	    for (unsigned int i = 0;					\
+		 i < bench_settings.iterations;				\
+		 i++) {							\
+		func();							\
+	    }								\
+	} else {							\
+	    while (1) {							\
+		bench_iteration();					\
+	    }								\
+	}								\
+	cycles_stop = cycles_get();					\
+	timing_stop(&t);						\
+									\
+	printf("Wall clock time: %.4f\n"				\
+	       "Cycles: %" PRIu64 "\n",					\
+	       t.acc, cycles_stop - cycles_start);			\
+    }
+
+/**
+ * Pin the running process to the CPU specified in the benchmark settings
+ *
+ * @return 0 on success, -1 on error. Sets errno on error.
+ */
+int bench_pin_cpu();
 
 #endif
 
