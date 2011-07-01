@@ -62,7 +62,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 
     case 'i':
         bench_settings.iterations =
-            argp_parse_int(state, "iterations", arg);
+            argp_parse_uint(state, "iterations", arg);
 	break;
 
     case KEY_CACHE_PRIVATE:

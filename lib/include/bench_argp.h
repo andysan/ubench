@@ -31,13 +31,15 @@
 #ifndef BENCH_ARGP_H
 #define BENCH_ARGP_H
 
+#include <stddef.h> /* For size_t */
+
 #include <argp.h>
 
 typedef struct {
     /** Pin to CPU, -1 to disable pinning */
     int cpu;
     /** Number of iterations to run */
-    int iterations;
+    unsigned int iterations;
     /** Size of private cache */
     size_t cache_private;
     /** Size of shared cache */

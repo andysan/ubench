@@ -70,7 +70,7 @@ run_bench()
 
     timing_start(&t);
     cycles_start = cycles_get();
-    for (long i = 0; i < bench_settings.iterations; i++)
+    for (unsigned int i = 0; i < bench_settings.iterations; i++)
 	bench_iteration();
     cycles_stop = cycles_get();
     timing_stop(&t);

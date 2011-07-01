@@ -46,10 +46,10 @@
 #include "access.h"
 
 static size_t bench_size = 16*1024*1024;
-static int bench_size_mask = 16*1024*1024 - 1;
+static size_t bench_size_mask = 16*1024*1024 - 1;
 
-static long bench_distance = LONG_MIN;
-static long bench_streams = 3;
+static size_t bench_distance = SIZE_MAX;
+static uint16_t bench_streams = 3;
 
 static char *data;
 
@@ -58,9 +58,9 @@ static char *data;
 static inline void
 bench_iteration()
 {
-    const long line_size = bench_settings.line_size;
-    for (long i = 0; i < bench_size; i += line_size) {
-	for (long j = 0; j < bench_streams; j++)
+    const size_t line_size = bench_settings.line_size;
+    for (size_t i = 0; i < bench_size; i += line_size) {
+	for (uint16_t j = 0; j < bench_streams; j++)
 	    ACCESS(data +
 		   ((i + bench_distance * j) & bench_size_mask));
     }
@@ -77,7 +77,7 @@ run_bench()
 
     timing_start(&t);
     cycles_start = cycles_get();
-    for (long i = 0; i < bench_settings.iterations; i++)
+    for (unsigned int i = 0; i < bench_settings.iterations; i++)
 	bench_iteration();
     cycles_stop = cycles_get();
     timing_stop(&t);
@@ -90,7 +90,7 @@ run_bench()
 static void
 init()
 {
-    if (bench_distance == LONG_MIN)
+    if (bench_distance == SIZE_MAX)
         bench_distance = bench_settings.cache_private * 1.5;
 
 
@@ -116,11 +116,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
     switch (key)
     {
     case 's':
-        bench_streams = argp_parse_long(state, "streams", arg);
+        bench_streams = argp_parse_uint16(state, "streams", arg);
         break;
 
     case 'd':
-        bench_distance = argp_parse_long(state, "distance", arg);
+        bench_distance = argp_parse_size(state, "distance", arg);
         break;
 
     case ARGP_KEY_ARG:
