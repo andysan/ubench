@@ -28,9 +28,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "argp_utils.h"
+
 #include <stdlib.h>
 #include <stdint.h>
-#include <limits.h>
 #include <argp.h>
 
 long long
@@ -51,45 +52,37 @@ argp_parse_long_long(struct argp_state *state,
     return value;
 }
 
-#define PARSE_INTTYPE(type, stype, limit)				\
+#define PARSE_INTTYPEX(type, fname, min, max)				\
     type								\
-    argp_parse_ ## stype(struct argp_state *state,			\
+    argp_parse_ ## fname(struct argp_state *state,			\
 			 const char *name, const char *arg)		\
     {									\
 	long long ll = argp_parse_long_long(state, name, arg);		\
-	if (ll > limit ## _MAX || ll <  limit ## _MIN)			\
+	if (ll > max || ll <  min)					\
 	    argp_error(state,						\
-		       "Invalid %s: '%lli' out of range for " # stype ".\n", \
+		       "Invalid %s: '%lli' out of range for " # type ".\n", \
 		       name, ll);					\
 									\
 	return (type)ll;						\
     }
 
 
-#define PARSE_UINTTYPE(type, stype, limit)				\
-    type								\
-    argp_parse_ ## stype(struct argp_state *state,			\
-			const char *name, const char *arg)		\
-    {									\
-	long long ll = argp_parse_long_long(state, name, arg);		\
-	if (ll > limit ## _MAX || ll <  0)				\
-	    argp_error(state,						\
-		       "Invalid %s: '%lli' out of range for " # stype ".\n", \
-		       name, ll);					\
-									\
-	return (type)ll;						\
-    }
+#define PARSE_INTTYPE(type, limit)					\
+    PARSE_INTTYPEX(type ## _t, type, limit ## _MIN, limit ## _MAX)
 
-PARSE_INTTYPE(long, long, LONG)
-PARSE_INTTYPE(long, int, INT)
+#define PARSE_UINTTYPE(type, limit)			\
+    PARSE_INTTYPEX(type ## _t, type, 0, limit ## _MAX)
 
-PARSE_INTTYPE(int64_t, int64, INT64)
-PARSE_INTTYPE(int32_t, int32, INT32)
-PARSE_INTTYPE(int16_t, int16, INT16)
-PARSE_INTTYPE(int8_t, int8, INT8)
+PARSE_INTTYPEX(long, long, LONG_MIN, LONG_MAX)
+PARSE_INTTYPEX(int, int, INT_MIN, INT_MAX)
+PARSE_INTTYPE(int64, INT64)
+PARSE_INTTYPE(int32, INT32)
+PARSE_INTTYPE(int16, INT16)
+PARSE_INTTYPE(int8, INT8)
 
-PARSE_UINTTYPE(size_t, size, SIZE)
-PARSE_UINTTYPE(uint64_t, uint64, UINT64)
-PARSE_UINTTYPE(uint32_t, uint32, UINT32)
-PARSE_UINTTYPE(uint16_t, uint16, UINT16)
-PARSE_UINTTYPE(uint8_t, uint8, UINT8)
+PARSE_UINTTYPE(size, SIZE)
+PARSE_INTTYPEX(unsigned int, uint, 0, UINT_MAX)
+PARSE_UINTTYPE(uint64, UINT64)
+PARSE_UINTTYPE(uint32, UINT32)
+PARSE_UINTTYPE(uint16, UINT16)
+PARSE_UINTTYPE(uint8, UINT8)

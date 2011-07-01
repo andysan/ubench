@@ -32,15 +32,16 @@
 #define ARGP_UTILS_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <argp.h>
 
 long long argp_parse_long_long(struct argp_state *state,
 			       const char *name, const char *arg);
 
-long long argp_parse_long(struct argp_state *state,
-			  const char *name, const char *arg);
-long long argp_parse_int(struct argp_state *state,
-			 const char *name, const char *arg);
+long argp_parse_long(struct argp_state *state,
+		     const char *name, const char *arg);
+int argp_parse_int(struct argp_state *state,
+		   const char *name, const char *arg);
 
 int64_t argp_parse_int64(struct argp_state *state,
 			 const char *name, const char *arg);
@@ -51,6 +52,8 @@ int16_t argp_parse_int16(struct argp_state *state,
 int8_t argp_parse_int8(struct argp_state *state,
 		       const char *name, const char *arg);
 
+unsigned int argp_parse_uint(struct argp_state *state,
+			     const char *name, const char *arg);
 uint64_t argp_parse_uint64(struct argp_state *state,
 			   const char *name, const char *arg);
 uint32_t argp_parse_uint32(struct argp_state *state,
@@ -62,7 +65,5 @@ uint8_t argp_parse_uint8(struct argp_state *state,
 
 size_t argp_parse_size(struct argp_state *state,
 		       const char *name, const char *arg);
-ssize_t argp_parse_ssize(struct argp_state *state,
-			 const char *name, const char *arg);
 
 #endif
