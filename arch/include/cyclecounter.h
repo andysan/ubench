@@ -33,6 +33,11 @@
 
 #include <stdint.h>
 
+#if defined(__i386__) || defined(__x86_64__)
+#include "x86/tsc.h"
+#endif
+
+
 /**
  * Read the local cycle counter
  *
@@ -65,9 +70,28 @@ static inline uint64_t cycles_get();
 static inline uint64_t cycles_get_mfenced();
 
 
-#if defined(__i386__) || defined(__x86_64__)
+/**
+ * Wait a specific number of cycles
+ *
+ * This function uses the architecture dependent cycle counter to stop
+ * a threads execution for a specified number of cycles.
+ *
+ * \param cycles Number of cycles to wait
+ */
+static inline void
+cycles_wait(uint64_t cycles)
+{
+#if defined(__x86_64__)
+    x86_tsc_wait(cycles);
+#else
+    const uint64_t start = cycles_get();
+    const uint64_t stop = start + cycles;
+    while (cycles_get() < stop)
+        ;
+#endif
+}
 
-#include "x86/tsc.h"
+#if defined(__i386__) || defined(__x86_64__)
 
 static inline uint64_t
 cycles_get()

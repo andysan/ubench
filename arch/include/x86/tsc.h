@@ -90,6 +90,22 @@ x86_tsc_read_mfenced()
     return tsc;
 }
 
+static inline void
+x86_tsc_wait(uint64_t cycles)
+{
+    const uint64_t stop = x86_tsc_read() + cycles;
+
+    asm volatile ("0:"
+                  "rdtsc\n\t"
+                  "shl $32, %%rdx\n\t"
+                  "or %%rdx, %%rax\n\t"
+                  "cmp %0, %%rax\n\t"
+                  "jle 0b\n\t"
+                  :
+                  : "r"(stop)
+                  : "rax", "rdx");
+}
+
 #elif defined(__i386__)
 
 static inline uint64_t
