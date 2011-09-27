@@ -57,7 +57,7 @@
 	    }								\
 	} else {							\
 	    while (1) {							\
-		bench_iteration();					\
+		func();                                                 \
 	    }								\
 	}								\
 	cycles_stop = cycles_get();					\
