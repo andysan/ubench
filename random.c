@@ -46,15 +46,30 @@
 static size_t bench_size = 4*1024*1024;
 static char *data;
 static uint64_t lcg_state = 42ULL;
+static int fix_conflict = 0;
+
+static size_t way_size;
+static size_t page_limit;
+static size_t alloc_size;
 
 #define ACCESS access_rd8
 
 static inline char *
-next_address()
+fixed_addr_from_offset(size_t offset)
+{
+    size_t page, page_offset;
+    page = offset / page_limit;
+    page_offset = offset % page_limit;
+
+    return data + page * MEM_HUGE_SIZE + page_offset;
+}
+
+static inline size_t
+next_offset()
 {
     lcg_state = rnd_lcg64(lcg_state);
 
-    return data + (lcg_state % bench_size);
+    return lcg_state % bench_size;
 }
 
 static inline void
@@ -62,8 +77,12 @@ bench_iteration()
 {
     const long line_size = bench_settings.line_size;
 
-    for (long i = 0; i < bench_size; i += line_size)
-        ACCESS(next_address());
+    if (fix_conflict)
+        for (long i = 0; i < bench_size; i += line_size)
+            ACCESS(fixed_addr_from_offset(next_offset()));
+    else
+        for (long i = 0; i < bench_size; i += line_size)
+            ACCESS(data + next_offset());
 }
 
 RUN_BENCH(run_bench, bench_iteration);
@@ -73,11 +92,35 @@ init()
 {
     EXPECT_ERRNO(bench_pin_cpu() != -1);
 
-    data = mem_huge_alloc(bench_size);
+    way_size = bench_settings.cache_shared / bench_settings.assoc_shared;
+    if (fix_conflict) {
+        if (way_size > MEM_HUGE_SIZE) {
+            fprintf(stderr, "Error: Cache way size is bigger than page size\n");
+            exit(1);
+        }
+        page_limit = (MEM_HUGE_SIZE / way_size) * way_size;
+    } else
+        page_limit = MEM_HUGE_SIZE;
+
+    alloc_size = ((bench_size / page_limit) + 
+                  ((bench_size % page_limit) ? 1 : 0)
+        ) * MEM_HUGE_SIZE;
+
+    data = mem_huge_alloc(alloc_size);
+
     EXPECT_ERRNO(data != NULL);
-    for (int i = 0; i < bench_size; i++)
+
+    /** Write something to the first byte in every page, this makes
+     * sure that we get backing storage for the entire allocation */
+    for (int i = 0; i < alloc_size; i += MEM_HUGE_SIZE)
 	data[i] = i & 0xFF;
 }
+
+static error_t parse_opt (int key, char *arg, struct argp_state *state);
+
+enum {
+    KEY_FIX_CONFLICT = -1,
+};
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -92,6 +135,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'r':
         lcg_state = argp_parse_uint64(state, "num", arg);
+        break;
+
+    case KEY_FIX_CONFLICT:
+        fix_conflict = 1;
         break;
 
     case ARGP_KEY_ARG:
@@ -116,6 +163,8 @@ const char *argp_program_bug_address =
 static struct argp_option arg_options[] = {
     { "size", 's', "SIZE", 0, "Data set size", 0 },
     { "random-seed", 'r', "NUM", 0, "Random seed", 0 },
+    { "fix-conflict", KEY_FIX_CONFLICT, NULL, 0,
+      "Try to avoid cache conflicts", 0 },
     { 0 }
 };
 
@@ -144,6 +193,11 @@ main(int argc, char *argv[])
     init();
 
     printf("Data size: %zu\n", bench_size);
+    if (fix_conflict) {
+        fprintf(stderr, "Conflict fix active:\n");
+        fprintf(stderr, "  Page Limit: %zu\n", page_limit); 
+        fprintf(stderr, "  Alloc Size: %zu\n", alloc_size);
+    }
     printf("Seed: %" PRIu64 "\n", lcg_state);
     printf("Iterations: %u\n", bench_settings.iterations);
 
