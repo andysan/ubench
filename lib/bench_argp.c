@@ -37,6 +37,7 @@ enum {
     KEY_CACHE_PRIVATE = -1,
     KEY_CACHE_SHARED = -2,
     KEY_LINE_SIZE = -3,
+    KEY_ASSOC_SHARED = -4,
 };
 
 static struct argp_option options[] = {
@@ -47,6 +48,8 @@ static struct argp_option options[] = {
     { NULL, 0, NULL, 0, "Cache settings:", 2 },
     { "cache-pri", KEY_CACHE_PRIVATE, "SIZE", 0, "Shared cache size", 2 },
     { "cache-sha", KEY_CACHE_SHARED, "SIZE", 0, "Shared cache size", 2 },
+    { "assoc-sha", KEY_ASSOC_SHARED, "WAYS", 0,
+      "Shared cache asociativity", 2 },
     { "line-size", KEY_LINE_SIZE, "SIZE", 0, "Line size", 2 },
 
     { 0 }
@@ -80,7 +83,19 @@ parse_opt(int key, char *arg, struct argp_state *state)
             argp_parse_size(state, "line size", arg);
 	break;
 
+    case KEY_ASSOC_SHARED:
+        bench_settings.assoc_shared =
+            argp_parse_size(state, "shared cache associativity", arg);
+
     case ARGP_KEY_END:
+        if (bench_settings.cache_private % bench_settings.line_size)
+            argp_error(state, "Private cache size not dividable by line size");
+        if (bench_settings.cache_shared % bench_settings.line_size)
+            argp_error(state, "Shared cache size not dividable by line size");
+        if ((bench_settings.cache_shared / bench_settings.line_size) %
+            bench_settings.assoc_shared)
+            argp_error(state, "Number of lines in the shared cache is not "
+                       "dividable by the associativity");
         break;
      
     default:
@@ -100,6 +115,7 @@ bench_settings_t bench_settings = {
     .cache_private = (32 + 256) * 1024,
     .cache_shared = 12 * 1024 * 1024,
     .line_size = 64,
+    .assoc_shared = 16,
 };
 
 /*

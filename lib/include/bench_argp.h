@@ -45,6 +45,8 @@ typedef struct {
     size_t cache_shared;
     /** Line size */
     size_t line_size;
+    /** Associativity of shared cache */
+    size_t assoc_shared;
 } bench_settings_t;
 
 extern bench_settings_t bench_settings;
