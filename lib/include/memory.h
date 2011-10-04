@@ -33,6 +33,9 @@
 
 #include <stddef.h>
 
+/** Size of a huge page */
+#define MEM_HUGE_SIZE (1 << 21)
+
 /**
  * Allocate memory using huge pages
  *

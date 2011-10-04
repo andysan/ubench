@@ -37,7 +37,7 @@
 #include "memory.h"
 
 /* Round size (upwards) to the nearest multiple of 2 MiB */
-#define ROUND_U(x) (((x) + (1 << 21)) & ~((1 << 21) - 1))
+#define ROUND_U(x) (((x) + MEM_HUGE_SIZE) & ~(MEM_HUGE_SIZE - 1))
 
 #ifndef MAP_HUGETLB
 /* MAP_HUGETLB is supported for kernels newer than 2.6.32 (might have
