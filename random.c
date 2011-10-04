@@ -47,6 +47,7 @@ static size_t bench_size = 4*1024*1024;
 static char *data;
 static uint64_t lcg_state = 42ULL;
 static int fix_conflict = 0;
+static int fix_conflict_conservative = 0;
 
 static size_t way_size;
 static size_t page_limit;
@@ -98,7 +99,8 @@ init()
             fprintf(stderr, "Error: Cache way size is bigger than page size\n");
             exit(1);
         }
-        page_limit = (MEM_HUGE_SIZE / way_size) * way_size;
+        page_limit = fix_conflict_conservative ?
+            way_size : (MEM_HUGE_SIZE / way_size) * way_size;
     } else
         page_limit = MEM_HUGE_SIZE;
 
@@ -120,6 +122,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state);
 
 enum {
     KEY_FIX_CONFLICT = -1,
+    KEY_FIX_CONFLICT_CONSERVATIVE = -2,
 };
 
 static error_t
@@ -139,6 +142,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case KEY_FIX_CONFLICT:
         fix_conflict = 1;
+        break;
+
+    case KEY_FIX_CONFLICT_CONSERVATIVE:
+        fix_conflict = 1;
+        fix_conflict_conservative = 1;
         break;
 
     case ARGP_KEY_ARG:
@@ -165,6 +173,8 @@ static struct argp_option arg_options[] = {
     { "random-seed", 'r', "NUM", 0, "Random seed", 0 },
     { "fix-conflict", KEY_FIX_CONFLICT, NULL, 0,
       "Try to avoid cache conflicts", 0 },
+    { "fix-conflict-conservative", KEY_FIX_CONFLICT_CONSERVATIVE, NULL, 0,
+      "Try to avoid cache conflicts. Only use one way per page.", 0 },
     { 0 }
 };
 
