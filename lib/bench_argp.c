@@ -71,7 +71,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 	break;
 
     case KEY_CACHE_SHARED:
-        bench_settings.cache_private =
+        bench_settings.cache_shared =
             argp_parse_size(state, "shared cache size", arg);
 	break;
 
