@@ -142,6 +142,11 @@ main(int argc, char *argv[])
     argp_parse (&argp, argc, argv, 0, 0, NULL);
 
     init();
+
+    printf("Data size: %zu\n", bench_size);
+    printf("Seed: %" PRIu64 "\n", lcg_state);
+    printf("Iterations: %u\n", bench_settings.iterations);
+
     run_bench();
     return 0;
 }

@@ -132,6 +132,7 @@ main(int argc, char *argv[])
     init();
 
     printf("Data size: %zu\n", bench_size);
+    printf("Iterations: %u\n", bench_settings.iterations);
 
     run_bench();
     return 0;
