@@ -42,6 +42,8 @@
 #include "access.h"
 #include "bench_common.h"
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+
 static size_t bench_size = 0;
 static int fix_conflict = 0;
 static int fix_conflict_conservative = 0;
@@ -54,25 +56,20 @@ static char *data;
 
 #define ACCESS access_rd8
 
-static inline char *
-fixed_addr_from_offset(size_t offset)
-{
-    size_t page, page_offset;
-    page = offset / page_limit;
-    page_offset = offset % page_limit;
-
-    return data + page * MEM_HUGE_SIZE + page_offset;
-}
-
 static inline void
 bench_iteration()
 {
     const long line_size = bench_settings.line_size;
 
-    if (fix_conflict)
-        for (long i = 0; i < bench_size; i += line_size)
-            ACCESS(fixed_addr_from_offset(i));
-    else
+    if (fix_conflict) {
+        const long last_element = (bench_size / page_limit) * MEM_HUGE_SIZE +
+            (bench_size % page_limit);
+        for (long i = 0; i < last_element; i += MEM_HUGE_SIZE) {
+            const long limit = MIN(i + page_limit, last_element);
+            for (long j = i; j < limit; j += line_size)
+                ACCESS(data + j);
+        }
+    } else
         for (long i = 0; i < bench_size; i += line_size)
             ACCESS(data + i);
 }
