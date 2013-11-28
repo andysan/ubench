@@ -48,6 +48,27 @@ static char *data;
 
 #define ACCESS access_rd8
 
+
+#if defined(__x86_64__)
+static inline void
+bench_iteration()
+{
+    asm("xor %%rcx, %%rcx\n"
+        "1:"
+        "mov 0(%[base], %%rcx, 1), %%rax\n"
+
+        "add %[line_size], %%rcx\n"
+        "cmp %[size], %%rcx\n"
+        "jl 1b\n"
+
+        :
+        : [size] "r"(bench_size),
+          [line_size] "r"(bench_settings.line_size),
+          [base] "r"(data)
+        : "%rcx", "%rax"
+        );
+}
+#else
 static inline void
 bench_iteration()
 {
@@ -55,6 +76,7 @@ bench_iteration()
     for (long i = 0; i < bench_size; i += line_size)
         ACCESS(data + i);
 }
+#endif
 
 RUN_BENCH(run_bench, bench_iteration);
 

@@ -57,6 +57,38 @@ next_address()
     return data + (lcg_state % bench_size);
 }
 
+#if defined(__x86_64__)
+static inline void
+bench_iteration()
+{
+    const uint64_t lcg_a = 6364136223846793005ULL;
+    const uint64_t lcg_b = 1442695040888963407ULL;
+
+    asm("mov %[i], %%rcx\n"
+        "1:"
+        "imul %[lcg_a], %[lcg_state]\n"
+        "add %[lcg_b], %[lcg_state]\n"
+
+        /* Divide the LCG state by the size to get reminder in rdx */
+        "xor %%rdx, %%rdx\n"
+        "mov %[lcg_state], %%rax\n"
+        "divq %[size]\n"
+
+        "mov 0(%[base], %%rdx), %%rax\n"
+
+        "dec %%rcx\n"
+        "jnz 1b\n"
+
+        : [lcg_state] "+r"(lcg_state)
+        : [lcg_a] "r"(lcg_a),
+          [lcg_b] "r"(lcg_b),
+          [size] "r"(bench_size),
+          [i] "r"(bench_size / bench_settings.line_size),
+          [base] "r"(data)
+        : "rax", "rdx", "rcx"
+        );
+}
+#else
 static inline void
 bench_iteration()
 {
@@ -65,6 +97,7 @@ bench_iteration()
     for (long i = 0; i < bench_size; i += line_size)
         ACCESS(next_address());
 }
+#endif
 
 RUN_BENCH(run_bench, bench_iteration);
 
